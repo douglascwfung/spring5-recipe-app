@@ -1,5 +1,6 @@
 package douglasfung.spring5recipeapp.services;
 
+import douglasfung.spring5recipeapp.commands.RecipeCommand;
 import douglasfung.spring5recipeapp.converters.RecipeCommandToRecipe;
 import douglasfung.spring5recipeapp.converters.RecipeToRecipeCommand;
 import douglasfung.spring5recipeapp.domain.Recipe;
@@ -47,9 +48,27 @@ public class RecipeServiceImplTest {
 
         Recipe recipeReturned = recipeService.findById(1L);
 
-        //Original one not working
-        //assertNotNull("Null recipe returned", recipeReturned);
-        assertNotNull(recipeReturned,"Recipe Not Found!");
+        assertNotNull(recipeReturned);
+        verify(recipeRepository, times(1)).findById(anyLong());
+        verify(recipeRepository, never()).findAll();
+    }
+
+    @Test
+    public void getRecipeCommandByIdTest() throws Exception {
+        Recipe recipe = new Recipe();
+        recipe.setId(1L);
+        Optional<Recipe> recipeOptional = Optional.of(recipe);
+
+        when(recipeRepository.findById(anyLong())).thenReturn(recipeOptional);
+
+        RecipeCommand recipeCommand = new RecipeCommand();
+        recipeCommand.setId(1L);
+
+        when(recipeToRecipeCommand.convert(any())).thenReturn(recipeCommand);
+
+        RecipeCommand commandById = recipeService.findCommandById(1L);
+
+        assertNotNull(commandById);
         verify(recipeRepository, times(1)).findById(anyLong());
         verify(recipeRepository, never()).findAll();
     }
@@ -70,4 +89,18 @@ public class RecipeServiceImplTest {
         verify(recipeRepository, never()).findById(anyLong());
     }
 
+    @Test
+    public void testDeleteById() throws Exception {
+
+        //given
+        Long idToDelete = Long.valueOf(2L);
+
+        //when
+        recipeService.deleteById(idToDelete);
+
+        //no 'when', since method has void return type
+
+        //then
+        verify(recipeRepository, times(1)).deleteById(anyLong());
+    }
 }
